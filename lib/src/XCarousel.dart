@@ -5,27 +5,27 @@ import 'package:flutter/rendering.dart';
 
 class XCarousel extends StatefulWidget {
   final Function(BuildContext context, int index) itemBuilder;
-  final Function(BuildContext context, int index, Function() onPressed)
+  final Function(BuildContext context, int index, Function() onPressed)?
       dotBuilder;
-  final void Function(int index) onItemFocusChange;
+  final void Function(int index)? onItemFocusChange;
   final int itemCount;
   final bool showDots;
   final bool autoPlay;
-  final ControllButtons controlButton;
-  final Duration autoPlayInterval;
-  final Widget overlayWidget;
-  final Duration autoPlayDelay;
-  final double viewportFraction;
-  final double scale;
+  final ControlButtons? controlButton;
+  final Duration? autoPlayInterval;
+  final Widget? overlayWidget;
+  final Duration? autoPlayDelay;
+  final double? viewportFraction;
+  final double? scale;
   final bool reverse;
   final bool showControlButton;
   final Alignment dotsPosition;
-  final Alignment overLayPosition;
-  final Duration duration;
-  final double containerHeight;
+  final Alignment? overLayPosition;
+  final Duration? duration;
+  final double? containerHeight;
 
   const XCarousel(
-      {@required this.itemBuilder,
+      {required this.itemBuilder,
       this.autoPlay = false,
       this.dotBuilder,
       this.autoPlayDelay,
@@ -34,7 +34,7 @@ class XCarousel extends StatefulWidget {
       this.duration,
       this.containerHeight,
       this.reverse = false,
-      @required this.itemCount,
+      required this.itemCount,
       this.onItemFocusChange,
       this.showDots = true,
       this.showControlButton = false,
@@ -43,8 +43,7 @@ class XCarousel extends StatefulWidget {
       this.scale,
       this.overLayPosition,
       this.controlButton})
-      : assert(itemBuilder != null),
-        assert((!showControlButton && controlButton == null) ||
+      : assert((!showControlButton && controlButton == null) ||
             (showControlButton && controlButton != null)),
         assert(itemCount != 0);
   @override
@@ -52,18 +51,18 @@ class XCarousel extends StatefulWidget {
 }
 
 class _PhotoSliderState extends State<XCarousel> {
-  PageController pageController;
+  PageController? pageController;
   final ScrollController thumbController = ScrollController();
   List<Widget> items = [];
   List<Widget> dots = [];
   final double thumbSize = 13;
   int page = 0;
-  Duration _autoPlayInterval = Duration(seconds: 5);
-  Duration _duration = Duration(milliseconds: 500);
-  Duration _autoPlayDelay = Duration(seconds: 5);
+  Duration? _autoPlayInterval = Duration(seconds: 5);
+  Duration? _duration = Duration(milliseconds: 500);
+  Duration? _autoPlayDelay = Duration(seconds: 5);
   ScrollDirection direction = ScrollDirection.forward;
-  Timer snapTimer;
-  Timer snapTimerPerodic;
+  Timer? snapTimer;
+  Timer? snapTimerPeriodic;
 
   @override
   void initState() {
@@ -80,13 +79,13 @@ class _PhotoSliderState extends State<XCarousel> {
   @override
   Widget build(BuildContext context) {
     return NotificationListener(
-      onNotification: (Notification noti) {
+      onNotification: (Notification notification) {
         if (widget.autoPlay) {
-          if (noti is ScrollStartNotification) {
-            if (noti.dragDetails != null) {
+          if (notification is ScrollStartNotification) {
+            if (notification.dragDetails != null) {
               _stopAutoplay();
             }
-          } else if (noti is ScrollEndNotification) {
+          } else if (notification is ScrollEndNotification) {
             if (snapTimer == null) _autoPlaySnap();
           }
         }
@@ -106,12 +105,12 @@ class _PhotoSliderState extends State<XCarousel> {
                         duration: Duration(milliseconds: 500),
                         curve: Curves.easeIn);
                   if (widget.onItemFocusChange != null)
-                    widget.onItemFocusChange(index);
+                    widget.onItemFocusChange!(index);
                   _buildSliderDots();
                 },
                 children: _buildItems(),
               ),
-              if (widget.showControlButton) ..._getControlls,
+              if (widget.showControlButton) ..._getControls,
               if (widget.showDots || widget.overlayWidget != null)
                 Positioned(
                     bottom: widget.overlayWidget == null ? 10 : 0,
@@ -159,12 +158,12 @@ class _PhotoSliderState extends State<XCarousel> {
   }
 
   void previous() {
-    pageController.previousPage(
+    pageController!.previousPage(
         duration: Duration(milliseconds: 500), curve: Curves.easeIn);
   }
 
   void next() {
-    pageController.nextPage(
+    pageController!.nextPage(
         duration: Duration(milliseconds: 500), curve: Curves.easeIn);
   }
 
@@ -174,14 +173,14 @@ class _PhotoSliderState extends State<XCarousel> {
     });
   }
 
-  List<Widget> get _getControlls {
+  List<Widget> get _getControls {
     return [
       Positioned(
           left: 0,
           bottom: 0,
           top: 0,
           child: widget.controlButton != null
-              ? widget.controlButton.left(previous)
+              ? widget.controlButton!.left(previous)
               : Center(
                   child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -214,7 +213,7 @@ class _PhotoSliderState extends State<XCarousel> {
           top: 0,
           bottom: 0,
           child: widget.controlButton != null
-              ? widget.controlButton.right(next)
+              ? widget.controlButton!.right(next)
               : Center(
                   child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -250,7 +249,7 @@ class _PhotoSliderState extends State<XCarousel> {
     for (var i = 0; i < widget.itemCount; i++) {
       Widget item = widget.itemBuilder(context, i);
 
-      items.add((widget.viewportFraction != null && widget.viewportFraction < 1)
+      items.add((widget.viewportFraction != null && widget.viewportFraction! < 1)
           ? Transform.scale(
               scale: page == i ? 1 : widget.scale ?? 0.8, child: item)
           : item);
@@ -260,9 +259,9 @@ class _PhotoSliderState extends State<XCarousel> {
 
   // auto play snap
   _autoPlaySnap() {
-    if (items != null && items.isNotEmpty)
-      snapTimer = Timer(_autoPlayDelay, () {
-        snapTimerPerodic = Timer.periodic(_autoPlayInterval, (timer) {
+    if (items.isNotEmpty)
+      snapTimer = Timer(_autoPlayDelay!, () {
+        snapTimerPeriodic = Timer.periodic(_autoPlayInterval!, (timer) {
           if (page == 0 ||
               (page < items.length - 1 &&
                   direction == ScrollDirection.forward)) {
@@ -270,9 +269,9 @@ class _PhotoSliderState extends State<XCarousel> {
               setState(() {
                 direction = ScrollDirection.forward;
               });
-            if (pageController.hasClients)
-              pageController.nextPage(
-                  duration: _duration, curve: Curves.easeInCubic);
+            if (pageController!.hasClients)
+              pageController!.nextPage(
+                  duration: _duration!, curve: Curves.easeInCubic);
           } else {
             if (page == (-1 + items.length)) {
               if (mounted)
@@ -280,11 +279,11 @@ class _PhotoSliderState extends State<XCarousel> {
                   direction = ScrollDirection.reverse;
                 });
             }
-            if (pageController.hasClients) if (widget.reverse)
-              pageController.previousPage(
-                  duration: _duration, curve: Curves.easeInCubic);
+            if (pageController!.hasClients) if (widget.reverse)
+              pageController!.previousPage(
+                  duration: _duration!, curve: Curves.easeInCubic);
             else
-              pageController.jumpToPage(
+              pageController!.jumpToPage(
                 0,
               );
           }
@@ -293,21 +292,21 @@ class _PhotoSliderState extends State<XCarousel> {
   }
 
   void _stopAutoplay() {
-    if (snapTimerPerodic != null) {
-      snapTimerPerodic.cancel();
-      snapTimerPerodic = null;
+    if (snapTimerPeriodic != null) {
+      snapTimerPeriodic!.cancel();
+      snapTimerPeriodic = null;
     }
     if (snapTimer != null) {
-      snapTimer.cancel();
+      snapTimer!.cancel();
       snapTimer = null;
     }
   }
 
   Widget _buildDots(int ind) {
-    Function() onDotPressed = () => pageController.animateToPage(ind,
+    Function() onDotPressed = () => pageController!.animateToPage(ind,
         duration: Duration(milliseconds: 500), curve: Curves.easeIn);
     return widget.dotBuilder != null
-        ? widget.dotBuilder(context, ind, onDotPressed)
+        ? widget.dotBuilder!(context, ind, onDotPressed)
         : new GestureDetector(
             onTap: onDotPressed,
             child: Container(
@@ -348,21 +347,19 @@ class _PhotoSliderState extends State<XCarousel> {
 
   @override
   void dispose() {
-    pageController.dispose();
+    pageController!.dispose();
     thumbController.dispose();
-    if (snapTimerPerodic != null) {
-      snapTimer.cancel();
-      snapTimerPerodic.cancel();
+    if (snapTimerPeriodic != null) {
+      snapTimer!.cancel();
+      snapTimerPeriodic!.cancel();
     }
     super.dispose();
   }
 }
 
-class ControllButtons {
+class ControlButtons {
   final Widget Function(VoidCallback onPress) left;
   final Widget Function(VoidCallback onPress) right;
 
-  ControllButtons({@required this.left, @required this.right})
-      : assert(left != null),
-        assert(right != null);
+  ControlButtons({required this.left, required this.right});
 }
